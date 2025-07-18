@@ -1,10 +1,538 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📿 Elektron Tasbih - Islom diniy ilovasi</title>
+    <meta name="description" content="Zikr qilish uchun qulay elektron tasbih ilovasi. Subhanallah, Alhamdulillah, Allahu Akbar">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📿</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --accent-color: #f59e0b;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Amiri', 'Arial', sans-serif;
+            direction: rtl;
+        }
+
+        .tasbih-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+            padding: 2.5rem;
+            text-align: center;
+            max-width: 420px;
+            width: 90%;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .tasbih-container::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            pointer-events: none;
+        }
+
+        .counter {
+            font-size: 4.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 1.5rem 0;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            font-family: 'Amiri', serif;
+        }
+
+        .zikr-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 1.5rem 0;
+            padding: 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            background: #f9fafb;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-color) #f1f1f1;
+        }
+
+        .zikr-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .zikr-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .zikr-list::-webkit-scrollbar-thumb {
+            background-color: var(--primary-color);
+            border-radius: 10px;
+        }
+
+        .zikr-item {
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .zikr-item:hover {
+            background-color: #eef2ff;
+        }
+
+        .zikr-item.active {
+            background-color: #dbeafe;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-secondary {
+            background-color: #f1f5f9;
+            color: #334155;
+            border: 1px solid #e2e8f0;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e2e8f0;
+            transform: translateY(-2px);
+        }
+
+        .btn-reset {
+            background-color: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fee2e2;
+        }
+
+        .btn-reset:hover {
+            background-color: #fee2e2;
+            transform: translateY(-2px);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .vibration {
+            animation: vibration 0.3s linear;
+        }
+
+        @keyframes vibration {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(2deg); }
+            50% { transform: rotate(0deg); }
+            75% { transform: rotate(-2deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background-color: #e5e7eb;
+            border-radius: 4px;
+            margin: 1.5rem 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--accent-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .settings-panel {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background-color: #f8fafc;
+            border-radius: 0.75rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .settings-toggle {
+            background: none;
+            border: none;
+            color: #64748b;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            margin: 0 auto;
+        }
+
+        .settings-toggle:hover {
+            color: var(--primary-color);
+        }
+
+        .haptic-feedback {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        @media (max-width: 480px) {
+            .tasbih-container {
+                padding: 1.5rem;
+            }
+
+            .counter {
+                font-size: 3.5rem;
+            }
+
+            .btn {
+                padding: 0.7rem 1.2rem;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
 </head>
 <body>
+<div class="tasbih-container">
+    <div class="haptic-feedback" id="hapticFeedback"></div>
 
+    <h1 class="text-3xl font-bold text-gray-800 mb-2">📿 Elektron Tasbih</h1>
+    <p class="text-gray-600 mb-6">Zikrlaringizni hisoblang</p>
+
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="counter" id="counter">0</div>
+
+    <div class="btn-group">
+        <button onclick="incrementCounter()" class="btn btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
+            </svg>
+            Zikr qilish
+        </button>
+        <button onclick="resetCounter()" class="btn btn-reset">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+            </svg>
+            Qayta boshlash
+        </button>
+    </div>
+
+    <div class="zikr-list" id="zikrList">
+        <div class="zikr-item active" onclick="selectZikr(0)">
+            <p class="text-2xl text-gray-800 font-arabic">سُبْحَانَ اللَّهِ</p>
+            <p class="text-gray-600 mt-1">Subhanallah</p>
+        </div>
+        <div class="zikr-item" onclick="selectZikr(1)">
+            <p class="text-2xl text-gray-800 font-arabic">الْحَمْدُ لِلَّهِ</p>
+            <p class="text-gray-600 mt-1">Alhamdulillah</p>
+        </div>
+        <div class="zikr-item" onclick="selectZikr(2)">
+            <p class="text-2xl text-gray-800 font-arabic">اللَّهُ أَكْبَرُ</p>
+            <p class="text-gray-600 mt-1">Allahu Akbar</p>
+        </div>
+        <div class="zikr-item" onclick="selectZikr(3)">
+            <p class="text-2xl text-gray-800 font-arabic">لَا إِلَٰهَ إِلَّا ٱللَّٰهُ</p>
+            <p class="text-gray-600 mt-1">La ilaha illallah</p>
+        </div>
+    </div>
+
+    <div class="settings-panel" id="settingsPanel" style="display: none;">
+        <h3 class="font-bold text-gray-700 mb-3">Sozlamalar</h3>
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-gray-700">Taq-tuq effekti:</span>
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer" id="hapticToggle" checked>
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+        </div>
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-gray-700">Bildirishnomalar:</span>
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer" id="notificationToggle" checked>
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+        </div>
+        <div class="flex items-center justify-between">
+            <span class="text-gray-700">Tasbih chegarasi:</span>
+            <select id="targetSelect" class="bg-gray-50 border border-gray-300 text-gray-700 rounded-lg px-2 py-1">
+                <option value="33">33</option>
+                <option value="99">99</option>
+                <option value="100">100</option>
+            </select>
+        </div>
+    </div>
+
+    <button class="settings-toggle" onclick="toggleSettings()">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+        </svg>
+        Sozlamalar
+    </button>
+</div>
+
+<script>
+    // Dastur holati
+    const state = {
+        count: 0,
+        currentZikr: 0,
+        target: 33,
+        hapticEnabled: true,
+        notificationsEnabled: true,
+        zikrNames: [
+            "Subhanallah",
+            "Alhamdulillah",
+            "Allahu Akbar",
+            "La ilaha illallah"
+        ],
+        zikrArabic: [
+            "سُبْحَانَ اللَّهِ",
+            "الْحَمْدُ لِلَّهِ",
+            "اللَّهُ أَكْبَرُ",
+            "لَا إِلَٰهَ إِلَّا ٱللَّٰهُ"
+        ]
+    };
+
+    // DOM elementlari
+    const counterElement = document.getElementById('counter');
+    const zikrListElement = document.getElementById('zikrList');
+    const progressBar = document.getElementById('progressBar');
+    const settingsPanel = document.getElementById('settingsPanel');
+    const hapticToggle = document.getElementById('hapticToggle');
+    const notificationToggle = document.getElementById('notificationToggle');
+    const targetSelect = document.getElementById('targetSelect');
+    const hapticFeedback = document.getElementById('hapticFeedback');
+
+    // Dasturni ishga tushirish
+    function init() {
+        // LocalStorage dan sozlamalarni yuklash
+        const savedSettings = localStorage.getItem('tasbihSettings');
+        if (savedSettings) {
+            const settings = JSON.parse(savedSettings);
+            state.hapticEnabled = settings.hapticEnabled;
+            state.notificationsEnabled = settings.notificationsEnabled;
+            state.target = settings.target;
+
+            hapticToggle.checked = state.hapticEnabled;
+            notificationToggle.checked = state.notificationsEnabled;
+            targetSelect.value = state.target;
+        }
+
+        updateProgressBar();
+
+        // Event listenerlar
+        hapticToggle.addEventListener('change', () => {
+            state.hapticEnabled = hapticToggle.checked;
+            saveSettings();
+        });
+
+        notificationToggle.addEventListener('change', () => {
+            state.notificationsEnabled = notificationToggle.checked;
+            saveSettings();
+        });
+
+        targetSelect.addEventListener('change', () => {
+            state.target = parseInt(targetSelect.value);
+            saveSettings();
+            updateProgressBar();
+        });
+
+        // Sensorli ekran uchun haptic feedback
+        if ('vibrate' in navigator) {
+            hapticFeedback.addEventListener('click', () => {
+                if (state.hapticEnabled) {
+                    navigator.vibrate(10);
+                }
+            });
+        }
+    }
+
+    // Hisoblagichni oshirish
+    function incrementCounter() {
+        state.count++;
+        counterElement.textContent = state.count;
+        counterElement.classList.add('vibration');
+
+        // Haptic feedback
+        if (state.hapticEnabled && 'vibrate' in navigator) {
+            navigator.vibrate(10);
+        }
+
+        // Progress yangilash
+        updateProgressBar();
+
+        // 33/99 ga yetganda bildirishnoma
+        if (state.count % state.target === 0 && state.notificationsEnabled) {
+            showCompletionNotification();
+        }
+
+        // Animationni olib tashlash
+        setTimeout(() => {
+            counterElement.classList.remove('vibration');
+        }, 300);
+
+        // Keyingi zikrga o'tish (agar chegaraga yetgan bo'lsa)
+        if (state.count % state.target === 0 && state.count !== 0) {
+            setTimeout(() => {
+                selectNextZikr();
+            }, 500);
+        }
+    }
+
+    // Hisoblagichni nolga tushurish
+    function resetCounter() {
+        state.count = 0;
+        counterElement.textContent = state.count;
+        updateProgressBar();
+
+        // Haptic feedback
+        if (state.hapticEnabled && 'vibrate' in navigator) {
+            navigator.vibrate([20, 10, 20]);
+        }
+    }
+
+    // Zikrni tanlash
+    function selectZikr(index) {
+        state.currentZikr = index;
+        state.count = 0;
+        counterElement.textContent = state.count;
+        updateProgressBar();
+
+        // Faol zikrni yangilash
+        const zikrItems = document.querySelectorAll('.zikr-item');
+        zikrItems.forEach((item, i) => {
+            if (i === index) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+
+        // Haptic feedback
+        if (state.hapticEnabled && 'vibrate' in navigator) {
+            navigator.vibrate(15);
+        }
+    }
+
+    // Keyingi zikrga o'tish
+    function selectNextZikr() {
+        const nextIndex = (state.currentZikr + 1) % state.zikrNames.length;
+        selectZikr(nextIndex);
+    }
+
+    // Progress bar ni yangilash
+    function updateProgressBar() {
+        const progress = (state.count % state.target) / state.target * 100;
+        progressBar.style.width = `${progress}%`;
+
+        // 90% dan oshganda rangni o'zgartirish
+        if (progress >= 90) {
+            progressBar.style.backgroundColor = '#10b981'; // Yashil rang
+        } else {
+            progressBar.style.backgroundColor = '#f59e0b'; // Sariq rang
+        }
+    }
+
+    // Yakunlanish bildirishnomasi
+    function showCompletionNotification() {
+        const zikrName = state.zikrNames[state.currentZikr];
+        const message = `${state.target} ta ${zikrName} yakunlandi!`;
+
+        // Notification API
+        if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification('Tasbih', {
+                body: message,
+                icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📿</text></svg>'
+            });
+        } else {
+            alert(message);
+        }
+    }
+
+    // Sozlamalarni ko'rsatish/yashirish
+    function toggleSettings() {
+        settingsPanel.style.display = settingsPanel.style.display === 'none' ? 'block' : 'none';
+
+        // Haptic feedback
+        if (state.hapticEnabled && 'vibrate' in navigator) {
+            navigator.vibrate(15);
+        }
+    }
+
+    // Sozlamalarni saqlash
+    function saveSettings() {
+        const settings = {
+            hapticEnabled: state.hapticEnabled,
+            notificationsEnabled: state.notificationsEnabled,
+            target: state.target
+        };
+        localStorage.setItem('tasbihSettings', JSON.stringify(settings));
+    }
+
+    // Dasturni ishga tushirish
+    document.addEventListener('DOMContentLoaded', init);
+
+    // Notification permission so'rash
+    if ('Notification' in window) {
+        Notification.requestPermission();
+    }
+
+    // Klaviaturadan ham boshqarish imkoniyati
+    document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' || e.code === 'Enter') {
+            incrementCounter();
+        } else if (e.code === 'Escape') {
+            resetCounter();
+        } else if (e.code === 'ArrowRight') {
+            selectNextZikr();
+        } else if (e.code === 'ArrowLeft') {
+            const prevIndex = (state.currentZikr - 1 + state.zikrNames.length) % state.zikrNames.length;
+            selectZikr(prevIndex);
+        }
+    });
+</script>
 </body>
 </html>
