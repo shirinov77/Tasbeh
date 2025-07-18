@@ -7,6 +7,7 @@
     <meta name="description" content="Zikr qilish uchun qulay elektron tasbih ilovasi. Subhanallah, Alhamdulillah, Allahu Akbar">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📿</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -16,13 +17,13 @@
         }
 
         body {
-            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             font-family: 'Amiri', 'Arial', sans-serif;
             direction: rtl;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         .tasbih-container {
@@ -36,6 +37,30 @@
             position: relative;
             overflow: hidden;
             border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Telegram tema moslashuvi */
+        body[data-theme="dark"] {
+            background: #1c2526;
+            color: #ffffff;
+        }
+
+        body[data-theme="dark"] .tasbih-container {
+            background: #2a3439;
+        }
+
+        body[data-theme="dark"] .zikr-list {
+            background: #374151;
+            border-color: #4b5563;
+        }
+
+        body[data-theme="dark"] .counter {
+            color: #60a5fa;
+        }
+
+        body[data-theme="dark"] .settings-panel {
+            background: #374151;
+            border-color: #4b5563;
         }
 
         .tasbih-container::before {
@@ -237,7 +262,7 @@
 <div class="tasbih-container">
     <div class="haptic-feedback" id="hapticFeedback"></div>
 
-    <h1 class="text-3xl font-bold text-gray-800 mb-2">📿 Elektron Tasbih</h1>
+    <h1 class="text-3xl font-bold text-gray-800 mb-2" id="title">📿 Elektron Tasbih</h1>
     <p class="text-gray-600 mb-6">Zikrlaringizni hisoblang</p>
 
     <div class="progress-container">
@@ -315,6 +340,27 @@
 </div>
 
 <script>
+    // Telegram Web App initialization
+    const WebApp = window.Telegram.WebApp;
+    WebApp.ready();
+    WebApp.expand();
+
+    // Telegram tema ranglarini olish
+    const theme = WebApp.themeParams;
+    document.body.setAttribute('data-theme', WebApp.colorScheme);
+    if (WebApp.colorScheme === 'dark') {
+        document.body.style.background = theme.bg_color || '#1c2526';
+        document.querySelector('.tasbih-container').style.background = theme.secondary_bg_color || '#2a3439';
+        document.querySelector('.counter').style.color = theme.text_color || '#60a5fa';
+        document.querySelectorAll('.zikr-item p').forEach(p => p.style.color = theme.hint_color || '#d1d5db');
+    }
+
+    // Foydalanuvchi ma'lumotlarini olish
+    const user = WebApp.initDataUnsafe.user;
+    if (user) {
+        document.getElementById('title').textContent = `📿 ${user.first_name} uchun Elektron Tasbih`;
+    }
+
     // Dastur holati
     const state = {
         count: 0,
@@ -420,6 +466,11 @@
                 selectNextZikr();
             }, 500);
         }
+
+        // Telegram'ga zikr sonini yuborish
+        if (user && state.count % 10 === 0) {
+            WebApp.sendData(JSON.stringify({ chat_id: user.id, zikr_count: state.count, zikr_name: state.zikrNames[state.currentZikr] }));
+        }
     }
 
     // Hisoblagichni nolga tushurish
@@ -431,6 +482,11 @@
         // Haptic feedback
         if (state.hapticEnabled && 'vibrate' in navigator) {
             navigator.vibrate([20, 10, 20]);
+        }
+
+        // Telegram'ga reset xabarini yuborish
+        if (user) {
+            WebApp.sendData(JSON.stringify({ chat_id: user.id, action: "reset" }));
         }
     }
 
@@ -481,15 +537,8 @@
         const zikrName = state.zikrNames[state.currentZikr];
         const message = `${state.target} ta ${zikrName} yakunlandi!`;
 
-        // Notification API
-        if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification('Tasbih', {
-                body: message,
-                icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📿</text></svg>'
-            });
-        } else {
-            alert(message);
-        }
+        // Telegram Web App ogohlantirish
+        WebApp.showAlert(message);
     }
 
     // Sozlamalarni ko'rsatish/yashirish
@@ -514,11 +563,6 @@
 
     // Dasturni ishga tushirish
     document.addEventListener('DOMContentLoaded', init);
-
-    // Notification permission so'rash
-    if ('Notification' in window) {
-        Notification.requestPermission();
-    }
 
     // Klaviaturadan ham boshqarish imkoniyati
     document.addEventListener('keydown', (e) => {
